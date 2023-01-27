@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <glm/glm.hpp>
 
 #include "Game.h"
 
@@ -89,14 +90,33 @@ void Game::ProcessInput()
     }
 }
 
+glm::vec2 playerPosition;
+glm::vec2 playerVelocity;
+
 void Game::Setup()
 {
-    //TODO: initialize game objects
+    playerPosition = glm::vec2(50.0, 50.0);
+    playerVelocity = glm::vec2(100.0, 0.0);
 }
 
 void Game::Update()
 {
-    //TODO: update all game objects
+    if (FPS_CAPPING)
+    {
+        // If we are too fast, we do nothing and wait until we reach MS_PER_FRAME
+        int timeToWait = MS_PER_FRAME - (SDL_GetTicks() - msPreviousFrame);
+        if (timeToWait > 0 && timeToWait < MS_PER_FRAME)
+            SDL_Delay(timeToWait);
+    }
+
+    // The difference in ticks since the last frame, converted to seconds
+    double deltaTime = (SDL_GetTicks() - msPreviousFrame) / 1000.0;
+
+    // Store the current frame time
+    msPreviousFrame = SDL_GetTicks();
+
+    playerPosition.x += playerVelocity.x * deltaTime;
+    playerPosition.y += playerVelocity.y * deltaTime;
 }
 
 void Game::Render()
@@ -104,19 +124,22 @@ void Game::Render()
     SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
     SDL_RenderClear(renderer);
 
-    //Draw a rectangle (TEST)
-    /*SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect player = {10, 10, 20, 20};
-    SDL_RenderFillRect(renderer, &player);*/
-
-    //Display our first texture
+    // Display our first texture
     SDL_Surface* surface = IMG_Load("./assets/images/tank-tiger-right.png");
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    SDL_Rect dstRect = {10, 10, 32, 32}; //Rectangle destination on the renderer for our texture
+
+    // Rectangle destination on the renderer for our texture
+    SDL_Rect dstRect =
+    {
+        static_cast<int>(playerPosition.x),
+        static_cast<int>(playerPosition.y),
+        32,
+        32
+    };
+
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
     SDL_DestroyTexture(texture);
-
     SDL_RenderPresent(renderer);
 }
 
