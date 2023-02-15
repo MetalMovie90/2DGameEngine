@@ -12,9 +12,22 @@ const unsigned int MAX_COMPONENTS = 32;
 */
 typedef std::bitset<MAX_COMPONENTS> Signature;
 
-class Component
+struct IComponent
 {
+    protected:
+        static int nextId;
+};
 
+// Used to assign a unique Id to a component type
+template <typename T>
+class Component : public IComponent
+{
+    // Returns the unique Id of Component<T>
+    static int GetId()
+    {
+        static auto id = nextId++;
+        return id;
+    }
 };
 
 class Entity
@@ -24,7 +37,16 @@ class Entity
 
     public:
         Entity(int id) : id(id) {};
+        Entity(const Entity& entity) = default;
         int GetId() const;
+
+        Entity& operator =(const Entity& other) = default;
+        bool operator ==(const Entity& other) const { return id == other.id; }
+        bool operator !=(const Entity& other) const { return id != other.id; }
+        bool operator >(const Entity& other) const { return id > other.id; }
+        bool operator <(const Entity& other) const { return id < other.id; }
+        bool operator >=(const Entity& other) const { return id >= other.id; }
+        bool operator <=(const Entity& other) const { return id <= other.id; }
 };
 
 /* SYSTEM
@@ -43,12 +65,23 @@ class System
         void AddEntityToSystem(Entity entity);
         void RemoveEntityFromSystem(Entity entity);
         std::vector<Entity> GetSystemEntities() const;
-        Signature& GetComponentSignature() const;
+        const Signature& GetComponentSignature() const;
+
+        // Defines the component type that entities must have
+        // in order to be considered by the system
+        template <typename TComponent> void RequireComponent();
 };
 
 class Registry
 {
 
 };
+
+template <typename TComponent>
+void System::RequireComponent()
+{
+    const auto componentId = Component<TComponent>::GetId();
+    componentSignature.set(componentId);
+}
 
 #endif
