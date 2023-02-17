@@ -1,0 +1,4 @@
+gameEngine*
+*.code-workspace
+.vscode/
+.DS_Store
