@@ -20,7 +20,7 @@ ifeq ($(OS),Darwin)
   LINKER_PATH = -L"/opt/homebrew/lib"
 else
   INCLUDE_PATH = -I"./libs/"
-  LINKER_PATH = -L""
+  LINKER_PATH =
 endif
 
 # Makefile rules
